@@ -1,0 +1,120 @@
+#!/bin/bash
+
+file_export=/home/safi/Desktop/network/docker_audit/audit.json
+
+header() {
+	echo " "
+	echo "---$1---[$(date '+%Y-%m-%d %H:%S:%M')]---"
+	echo " "
+}
+
+show_network() {
+	header "Docker Network"
+	docker network ls
+	echo " "
+}
+
+show_containers() {
+	header "Containers"
+	read -p "Type A to see all containers, else enter to see running containers:" con
+	if [ "$con" = "A" ]; then
+		docker ps -a
+	else
+		docker ps
+	fi
+}
+
+show_container_network() {
+	header "Container Network Details"
+	read -p "Enter Network Name:" net
+	echo " "
+	docker inspect $net
+	echo " "
+}
+
+show_port_map() {
+	header "Port Mapping"
+	docker ps --format '{{.Names}}{{.Ports}}' | awk '$2 ~ /->/'
+	
+}
+
+container_ip_address() {
+	header "Container IP Addresses"
+	docker ps -q | xargs -n1 docker inspect --format '{{.Name}}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+}
+
+inspect_network_container() {
+	header "Containers Per Network"
+	docker network ls -q | xargs -n1 docker network inspect --format '{{.Name}}{{len .Containers}}'
+}
+
+check_network_modes() {
+	header "Docker Network Modes"
+	docker network ls --format '{{.Name}}\t{{.Driver}}' | column -t
+	echo " "
+}
+
+json_format() {
+	mkdir -p "$(dirname "$file_export")"
+
+	networks=$(docker network ls --format '{{.Name}}')
+	containers=$(docker ps -a --format '{{.Names}}')
+	port_map=$(docker ps --format '{{.Names}} {{.Ports}}' | awk '$2 ~ /->/')
+	container_ips=$(docker ps -q | xargs -n1 docker inspect --format '{{.Name}} {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' | sed 's#^/##')
+	containers_per_net=$(docker network ls -q | xargs -n1 docker network inspect --format '{{.Name}} {{len .Containers}}')
+	network_modes=$(docker network ls --format '{{.Name}} {{.Driver}}')
+
+	jq -n \
+		--arg networks "$networks" \
+		--arg containers "$containers" \
+		--arg port_map "$port_map" \
+		--arg container_ips "$container_ips" \
+		--arg containers_per_net "$containers_per_net" \
+		--arg network_modes "$network_modes" \
+		'{
+			networks: ($networks | split("\n") | map(select(length>0))),
+			containers: ($containers | split("\n") | map(select(length>0))),
+			port_mappings: ($port_map | split("\n") | map(select(length>0))),
+			container_ips: ($container_ips | split("\n") | map(select(length>0))),
+			containers_per_network: ($containers_per_net | split("\n") | map(select(length>0))),
+			network_modes: ($network_modes | split("\n") | map(select(length>0)))
+		}' | jq '.' > "$file_export"
+	echo "$file_export"
+	echo " "
+}
+
+menu() {
+	echo " "
+	echo "Docker Network Audit"
+	echo " "
+	echo "1.Show Docker Network"
+	echo "2.Show Docker Containers"
+	echo "3.Show Container Network Details"
+	echo "4.Show Port Mapping"
+	echo "5.Show Container IP addresses"
+	echo "6.Show Containers Per Network"
+	echo "7.Show Network Modes"
+	echo "8.Export Json"
+}
+
+menu
+
+while true; do
+read -p "Enter your choice:" choice
+
+case $choice in
+	1)show_network ;;
+	2)show_containers ;;
+	3)show_container_network ;;
+	4)show_port_map ;;
+	5)container_ip_address ;;
+	6)inspect_network_container ;;
+	7)check_network_modes ;;
+	8) header "Exporting as JSON"
+		json_format ;;
+	9) echo "Exiting...."
+		sleep 1	
+		exit 0 ;;
+	*) echo "Invalid option" ;;
+esac
+done
