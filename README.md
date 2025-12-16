@@ -19,22 +19,30 @@ This tool provides both:
 ## **⭐ Features**
 ✔ Docker Network Inspection  
 - Lists all Docker networks available on the host.
-✔ Container Visibility
-- Shows running containers or all containers (running + stopped).
-✔ Container Network Details
-- Inspects how containers are attached to Docker networks.
-✔ Port Mapping Audit
-- Displays host ↔ container port mappings to identify exposed services.
-✔ Container IP Address Extraction
-- Extracts private IP addresses assigned to containers.
-✔ Containers per Network
-- Counts how many containers are attached to each Docker network.
-✔ Network Mode Identification
--Shows Docker network drivers (bridge, host, none, etc.).
-✔ JSON Export
-- Exports the complete audit into a structured JSON file.
-✔ Automated Audits (Cron)
-- Runs automatically every 6 hours, generating a fresh JSON snapshot without manual intervention.
+
+✔ Container Visibility  
+- Shows running containers or all containers (running + stopped).  
+
+✔ Container Network Details  
+- Inspects how containers are attached to Docker networks.  
+
+✔ Port Mapping Audit  
+- Displays host ↔ container port mappings to identify exposed services.  
+
+✔ Container IP Address Extraction   
+- Extracts private IP addresses assigned to containers.  
+
+✔ Containers per Network  
+- Counts how many containers are attached to each Docker network.  
+
+✔ Network Mode Identification  
+- Shows Docker network drivers (bridge, host, none, etc.).  
+
+✔ JSON Export  
+- Exports the complete audit into a structured JSON file.  
+
+✔ Automated Audits (Cron)  
+- Runs automatically every 6 hours, generating a fresh JSON snapshot without manual intervention.  
 
 ## **🖥️ Project Structure**
 docker-network-audit/  
